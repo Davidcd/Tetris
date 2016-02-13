@@ -50,19 +50,14 @@ public class Tetris extends ApplicationAdapter {
 		this.gravity = 1000000000;
 		this.WIDTH = Gdx.graphics.getWidth();
 		
-		I = new Texture(Gdx.files.internal("I.png"));
-		J = new Texture(Gdx.files.internal("J.png"));
-		L = new Texture(Gdx.files.internal("L.png"));
-		O = new Texture(Gdx.files.internal("O.png"));
-		S = new Texture(Gdx.files.internal("S.png"));
-		T = new Texture(Gdx.files.internal("T.png"));
-		Z = new Texture(Gdx.files.internal("Z.png"));
+		
 		
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false);
 		
 		shapeRenderer = new ShapeRenderer();
 		shapeRenderer.setAutoShapeType(true);
+		final int BLOCKSIZE = 30;
 	}
 	
 	@Override
@@ -79,6 +74,8 @@ public class Tetris extends ApplicationAdapter {
 			//this.playerPiece = new TetrisPiece(TetrisPieceShape.S);
 			//this.playerPiece = new TetrisPiece(TetrisPieceShape.T);
 			//this.playerPiece = new TetrisPiece(TetrisPieceShape.Z);
+			
+			//TODO: Generate a random piece and set it as the player piece
 		}
 		
 		canMoveDown = canMoveDown();
@@ -106,7 +103,9 @@ public class Tetris extends ApplicationAdapter {
 			}
 		}
 		if(Gdx.input.isKeyJustPressed(Keys.UP)) {
-			this.playerPiece.turn();
+			if(canTurn(this.playerPiece)) {
+				this.playerPiece.turn();
+			}
 		}
 		
 		//if so, lock it in place and create a new piece on the next round
@@ -115,8 +114,7 @@ public class Tetris extends ApplicationAdapter {
 			this.playerPiece = null;
 		}
 		
-		//tetrisCheck();
-		final int BLOCKSIZE = 30;
+		
 		tetrisCheck(new Polygon(new float[] {
 			    0, 1,				//Bottom left
 			    0, BLOCKSIZE - 1, 	//Top left
@@ -141,7 +139,7 @@ public class Tetris extends ApplicationAdapter {
 	
 	/**
 	 * Determine if a piece can be moved left or right
-	 * @param right if the movement being checked is to the right
+	 * @param right If the movement being checked is to the right
 	 * @return 
 	 */
 	private boolean canMoveSideways(boolean right) {
@@ -183,6 +181,27 @@ public class Tetris extends ApplicationAdapter {
 				}
 			}
 		}
+		return true;
+	}
+	
+	/**
+	 * Checks if the player piece can be rotated
+	 * @return True if the piece can rotate without going off screen or overlapping another piece, false otherwise
+	 */
+	private boolean canTurn(TetrisPiece piece) {
+		TetrisPiece turnedPiece = piece.clone();
+		turnedPiece.turn();
+		for(TetrisBlock block : turnedPiece.getBlocks()) {
+			if(block.getTransformedVertices()[1] <= 0f) return false; //Off the bottom of the screen
+			else if(block.getTransformedVertices()[0] <= -1) return false; //Off the left of the screen
+			else if(block.getTransformedVertices()[6] >= Gdx.graphics.getWidth() + 1) return false; //Off the right of the screen
+			for(TetrisPiece lockedPiece : this.lockedPieces) {
+				for(TetrisBlock lockedBox : lockedPiece.getBlocks()) {
+					if(Intersector.overlapConvexPolygons(lockedBox, block)) return false;
+				}
+			}			
+		}
+				
 		return true;
 	}
 	

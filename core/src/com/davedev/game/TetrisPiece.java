@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Polygon;
 
-public class TetrisPiece {
+public class TetrisPiece implements Cloneable {
 	
 	TetrisPieceShape shape;
 	ArrayList<TetrisBlock> blocks;
@@ -225,6 +225,16 @@ public class TetrisPiece {
 			}
 			blocks.add(new TetrisBlock(newBlock));
 		}
+	}
+	
+	public TetrisPiece clone() {
+		TetrisPiece cloned = null;
+		try {
+			cloned = (TetrisPiece) super.clone();
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+		return cloned;
 	}
 	
 	public void translate(float x, float y) {
